@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PERT/CPM Project Manager | SwiftPay B2B Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #f97316;
+            --primary-dark: #ea580c;
+            --secondary: #06b6d4;
+            --accent: #8b5cf6;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #eab308;
+            --critical: #ef4444;
+            --bg-dark: #18181b;
+            --bg-card: #27272a;
+            --bg-card-hover: #3f3f46;
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --border: #3f3f46;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #18181b 0%, #1f1f23 50%, #18181b 100%);
+        }
+        
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.06) 0%, transparent 50%);
+            animation: pulse 20s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(5%, 5%) scale(1.1); }
+        }
+        
+        .header {
+            background: rgba(39, 39, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            max-width: 1700px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            animation: glow 3s ease-in-out infinite;
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(249, 115, 22, 0.4); }
+            50% { box-shadow: 0 0 40px rgba(249, 115, 22, 0.6); }
+        }
+        
+        .logo-text h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .logo-text span {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(249, 115, 22, 0.5);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--bg-card-hover);
+        }
+        
+        .container {
+            max-width: 1700px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .card {
+            background: rgba(39, 39, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card:hover {
+            border-color: var(--primary);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card-title-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .grid { display: grid; gap: 1.5rem; }
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-4 { grid-template-columns: repeat(4, 1fr); }
+        .grid-5 { grid-template-columns: repeat(5, 1fr); }
+        
+        @media (max-width: 1200px) {
+            .grid-4, .grid-5 { grid-template-columns: repeat(2, 1fr); }
+            .grid-3 { grid-template-columns: repeat(2, 1fr); }
+        }
+        
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .grid-4, .grid-5 { grid-template-columns: 1fr; }
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, rgba(39, 39, 42, 0.9), rgba(39, 39, 42, 0.5));
+            border-radius: 14px;
+            padding: 1.25rem;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--primary), var(--secondary));
+        }
+        
+        .stat-card.critical {
+            border-color: var(--critical);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(39, 39, 42, 0.9));
+        }
+        
+        .stat-card.critical::before {
+            background: linear-gradient(180deg, var(--critical), var(--primary));
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .stat-value.critical {
+            background: linear-gradient(135deg, var(--critical), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .stat-sub {
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            color: var(--text-secondary);
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 0.75rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        th {
+            background: rgba(249, 115, 22, 0.15);
+            font-weight: 600;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary);
+        }
+        
+        tr:hover td {
+            background: rgba(249, 115, 22, 0.05);
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tr.critical-row {
+            background: rgba(239, 68, 68, 0.1) !important;
+        }
+        
+        tr.critical-row td {
+            color: var(--critical);
+            font-weight: 600;
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .badge-primary { background: rgba(249, 115, 22, 0.2); color: var(--primary); }
+        .badge-secondary { background: rgba(6, 182, 212, 0.2); color: var(--secondary); }
+        .badge-success { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+        .badge-warning { background: rgba(234, 179, 8, 0.2); color: var(--warning); }
+        .badge-danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        .badge-critical { background: rgba(239, 68, 68, 0.3); color: var(--critical); }
+        
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-dark);
+            padding: 4px;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+        
+        .tab:hover {
+            color: var(--text-primary);
+            background: rgba(249, 115, 22, 0.1);
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* PERT Network Diagram - Lecture Style */
+        .network-diagram {
+            background: var(--bg-dark);
+            border-radius: 12px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+        }
+        
+        .network-svg {
+            min-width: 1200px;
+            height: 550px;
+        }
+        
+        /* Activity Node Box - AON Style from Lectures */
+        .activity-node {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .activity-node:hover {
+            filter: brightness(1.1);
+        }
+        
+        .node-box {
+            stroke-width: 2;
+            rx: 4;
+        }
+        
+        .node-box.critical {
+            stroke: var(--critical);
+            stroke-width: 3;
+            fill: rgba(239, 68, 68, 0.15);
+            filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.5));
+        }
+        
+        .node-box.normal {
+            stroke: var(--secondary);
+            fill: rgba(6, 182, 212, 0.1);
+        }
+        
+        .node-divider {
+            stroke: var(--border);
+            stroke-width: 1;
+        }
+        
+        .node-divider.critical {
+            stroke: rgba(239, 68, 68, 0.5);
+        }
+        
+        .node-text {
+            fill: var(--text-primary);
+            font-family: 'Segoe UI', sans-serif;
+        }
+        
+        .node-id {
+            font-size: 16px;
+            font-weight: 700;
+        }
+        
+        .node-id.critical {
+            fill: var(--critical);
+        }
+        
+        .node-time-value {
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .node-time-label {
+            font-size: 8px;
+            fill: var(--text-secondary);
+        }
+        
+        .arrow {
+            stroke-width: 2;
+            fill: none;
+        }
+        
+        .arrow.critical {
+            stroke: var(--critical);
+            stroke-width: 3;
+            filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.5));
+        }
+        
+        .arrow.normal {
+            stroke: var(--text-secondary);
+            stroke-dasharray: 5,3;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            padding: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.875rem;
+        }
+        
+        .legend-box {
+            width: 24px;
+            height: 16px;
+            border-radius: 3px;
+            border: 2px solid;
+        }
+        
+        .legend-line {
+            width: 30px;
+            height: 3px;
+            border-radius: 2px;
+        }
+        
+        /* Gantt Chart */
+        .gantt-container {
+            overflow-x: auto;
+            padding: 1rem 0;
+        }
+        
+        .gantt-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .gantt-label {
+            width: 150px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .gantt-track {
+            flex: 1;
+            height: 24px;
+            background: var(--bg-dark);
+            border-radius: 4px;
+            position: relative;
+            min-width: 600px;
+        }
+        
+        .gantt-bar {
+            position: absolute;
+            height: 100%;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .gantt-bar.critical {
+            background: linear-gradient(90deg, var(--critical), #dc2626);
+        }
+        
+        .gantt-bar.normal {
+            background: linear-gradient(90deg, var(--secondary), #0891b2);
+        }
+        
+        .gantt-markers {
+            display: flex;
+            margin-left: 150px;
+            min-width: 600px;
+            border-top: 1px solid var(--border);
+            padding-top: 0.5rem;
+        }
+        
+        .gantt-marker {
+            flex: 1;
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Probability Cards */
+        .prob-card {
+            background: var(--bg-dark);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+        
+        .prob-weeks {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .prob-value {
+            font-size: 2rem;
+            font-weight: 800;
+            margin: 0.5rem 0;
+        }
+        
+        .prob-status {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            border-top: 1px solid var(--border);
+            margin-top: 2rem;
+        }
+        
+        .critical-highlight {
+            background: linear-gradient(90deg, rgba(239, 68, 68, 0.2), transparent);
+            border-left: 4px solid var(--critical);
+            padding-left: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">📊</div>
+                <div class="logo-text">
+                    <h1>PERT/CPM Project Manager</h1>
+                    <span>SwiftPay B2B Platform | Q4 Project Management</span>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-secondary" onclick="exportResults()">📥 Export</button>
+                <button class="btn btn-primary" onclick="analyzeProject()">⚡ Analyze Project</button>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container">
+        <div class="card" style="text-align: center; margin-bottom: 2rem; background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(6, 182, 212, 0.1));">
+            <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">
+                💳 SwiftPay B2B Digital Payment Platform Launch
+            </h2>
+            <p style="color: var(--text-secondary);">
+                PERT/CPM Analysis | Critical Path Identification | Probability of Completion
+            </p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('input')">📝 Project Data</button>
+            <button class="tab" onclick="showTab('network')">🔗 PERT Network</button>
+            <button class="tab" onclick="showTab('analysis')">📊 CPM Analysis</button>
+            <button class="tab" onclick="showTab('probability')">🎲 Probability</button>
+            <button class="tab" onclick="showTab('gantt')">📅 Gantt Chart</button>
+            <button class="tab" onclick="showTab('recommendation')">🎯 Recommendation</button>
+        </div>
+        
+        <!-- Tab: Input Data -->
+        <div id="tab-input" class="tab-content active">
+            <div class="grid grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-title-icon">📋</div>
+                            Project Activities
+                        </div>
+                        <span class="badge badge-primary">14 Activities</span>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Activity</th>
+                                    <th>Description</th>
+                                    <th>Predecessors</th>
+                                    <th>a</th>
+                                    <th>m</th>
+                                    <th>b</th>
+                                </tr>
+                            </thead>
+                            <tbody id="activity-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-title-icon">ℹ️</div>
+                            Project Information
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="padding: 1rem; background: var(--bg-dark); border-radius: 10px;">
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">PROJECT</div>
+                            <div style="font-weight: 700;">SwiftPay B2B Digital Payment Platform</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                                Fintech Startup • Cairo, Egypt • Budget: EGP 8.5M
+                            </div>
+                        </div>
+                        
+                        <div style="padding: 1rem; background: var(--bg-dark); border-radius: 10px;">
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">SCOPE</div>
+                            <ul style="font-size: 0.875rem; color: var(--text-secondary); padding-left: 1.25rem;">
+                                <li>Core Payment Engine Development</li>
+                                <li>API Gateway & Banking Integrations</li>
+                                <li>Web Dashboard & Mobile App</li>
+                                <li>Security Audit & Regulatory Compliance</li>
+                                <li>Go-to-Market Launch</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="padding: 1rem; background: var(--bg-dark); border-radius: 10px;">
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">PERT FORMULAS</div>
+                            <div style="font-family: monospace; font-size: 0.85rem; color: var(--primary);">
+                                <div>t<sub>e</sub> = (a + 4m + b) / 6</div>
+                                <div style="margin-top: 0.5rem;">σ² = ((b - a) / 6)²</div>
+                            </div>
+                        </div>
+                        
+                        <div style="padding: 1rem; background: rgba(249, 115, 22, 0.1); border-radius: 10px; border: 1px solid var(--primary);">
+                            <div style="font-size: 0.75rem; color: var(--primary); margin-bottom: 0.5rem;">WHY PERT SELECTED?</div>
+                            <ul style="font-size: 0.8rem; color: var(--text-secondary); padding-left: 1.25rem;">
+                                <li>High uncertainty in development timelines</li>
+                                <li>No historical data (first B2B product)</li>
+                                <li>Regulatory approval is probabilistic</li>
+                                <li>External API complexity is variable</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; padding: 16px; font-size: 1.1rem;" onclick="analyzeProject()">
+                        ⚡ Analyze Project
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab: Network Diagram -->
+        <div id="tab-network" class="tab-content">
+            <div id="network-container">
+                <div style="text-align: center; padding: 4rem; color: var(--text-secondary);">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">🔗</div>
+                    <p>Click "Analyze Project" to see the PERT network diagram</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab: Analysis -->
+        <div id="tab-analysis" class="tab-content">
+            <div id="analysis-container">
+                <div style="text-align: center; padding: 4rem; color: var(--text-secondary);">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">📊</div>
+                    <p>Click "Analyze Project" to see CPM analysis</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab: Probability -->
+        <div id="tab-probability" class="tab-content">
+            <div id="probability-container">
+                <div style="text-align: center; padding: 4rem; color: var(--text-secondary);">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">🎲</div>
+                    <p>Click "Analyze Project" to see probability analysis</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab: Gantt Chart -->
+        <div id="tab-gantt" class="tab-content">
+            <div id="gantt-container">
+                <div style="text-align: center; padding: 4rem; color: var(--text-secondary);">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">📅</div>
+                    <p>Click "Analyze Project" to see Gantt chart</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab: Recommendation -->
+        <div id="tab-recommendation" class="tab-content">
+            <div id="recommendation-container">
+                <div style="text-align: center; padding: 4rem; color: var(--text-secondary);">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">🎯</div>
+                    <p>Click "Analyze Project" to see recommendations</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer class="footer">
+        <p>BUS505 Quantitative Business Analysis | ESLSCA University</p>
+        <p>Instructor: Assoc. Prof. Berihan Elemary | January 2026</p>
+    </footer>
+
+    <script>
+        // Project Activities Data
+        const activities = [
+            { id: 'A', name: 'Project Kickoff & Requirements', predecessors: [], a: 1, m: 1.5, b: 3 },
+            { id: 'B', name: 'System Architecture Design', predecessors: ['A'], a: 1.5, m: 2, b: 4 },
+            { id: 'C', name: 'Core Payment Engine Dev', predecessors: ['B'], a: 4, m: 6, b: 10 },
+            { id: 'D', name: 'API Gateway Development', predecessors: ['B'], a: 2, m: 3, b: 5 },
+            { id: 'E', name: 'Web Dashboard Development', predecessors: ['B'], a: 3, m: 4, b: 6 },
+            { id: 'F', name: 'Mobile App Development', predecessors: ['B'], a: 4, m: 5, b: 8 },
+            { id: 'G', name: 'Banking Integration', predecessors: ['C', 'D'], a: 3, m: 4, b: 6 },
+            { id: 'H', name: 'Security Audit & Pen Testing', predecessors: ['C', 'D', 'E'], a: 1.5, m: 2, b: 3 },
+            { id: 'I', name: 'Regulatory Compliance Doc', predecessors: ['G', 'H'], a: 1, m: 1.5, b: 2 },
+            { id: 'J', name: 'User Acceptance Testing', predecessors: ['E', 'F', 'G'], a: 1, m: 1.5, b: 3 },
+            { id: 'K', name: 'Marketing & Sales Prep', predecessors: ['A'], a: 2, m: 3, b: 5 },
+            { id: 'L', name: 'Regulatory Approval (CBE)', predecessors: ['I'], a: 2, m: 3, b: 6 },
+            { id: 'M', name: 'Production Deployment', predecessors: ['J', 'L'], a: 1, m: 1.5, b: 3 },
+            { id: 'N', name: 'Official Launch', predecessors: ['K', 'M'], a: 0.5, m: 1, b: 2 }
+        ];
+        
+        let results = null;
+        
+        function showTab(tabId) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tabId).classList.add('active');
+        }
+        
+        function initActivityTable() {
+            const tbody = document.getElementById('activity-table-body');
+            tbody.innerHTML = activities.map(a => `
+                <tr>
+                    <td><b>${a.id}</b></td>
+                    <td style="text-align: left; font-size: 0.75rem;">${a.name}</td>
+                    <td>${a.predecessors.length > 0 ? a.predecessors.join(', ') : '—'}</td>
+                    <td>${a.a}</td>
+                    <td>${a.m}</td>
+                    <td>${a.b}</td>
+                </tr>
+            `).join('');
+        }
+        
+        function analyzeProject() {
+            // Calculate expected times and variances
+            const activityData = activities.map(a => ({
+                ...a,
+                te: (a.a + 4 * a.m + a.b) / 6,
+                variance: Math.pow((a.b - a.a) / 6, 2)
+            }));
+            
+            const activityMap = {};
+            activityData.forEach(a => activityMap[a.id] = a);
+            
+            // Forward Pass (ES, EF)
+            activityData.forEach(a => {
+                if (a.predecessors.length === 0) {
+                    a.ES = 0;
+                } else {
+                    a.ES = Math.max(...a.predecessors.map(p => activityMap[p].EF));
+                }
+                a.EF = a.ES + a.te;
+            });
+            
+            const projectDuration = Math.max(...activityData.map(a => a.EF));
+            
+            // Backward Pass (LS, LF)
+            const endActivities = activityData.filter(a => 
+                !activityData.some(other => other.predecessors.includes(a.id))
+            );
+            
+            endActivities.forEach(a => {
+                a.LF = projectDuration;
+                a.LS = a.LF - a.te;
+            });
+            
+            for (let i = activityData.length - 1; i >= 0; i--) {
+                const a = activityData[i];
+                if (a.LF === undefined) {
+                    const successors = activityData.filter(other => 
+                        other.predecessors.includes(a.id)
+                    );
+                    a.LF = Math.min(...successors.map(s => s.LS));
+                    a.LS = a.LF - a.te;
+                }
+            }
+            
+            // Calculate Slack
+            activityData.forEach(a => {
+                a.slack = parseFloat((a.LS - a.ES).toFixed(4));
+                a.isCritical = Math.abs(a.slack) < 0.01;
+            });
+            
+            const criticalPath = activityData.filter(a => a.isCritical).map(a => a.id);
+            
+            const projectVariance = activityData
+                .filter(a => a.isCritical)
+                .reduce((sum, a) => sum + a.variance, 0);
+            
+            const projectStdDev = Math.sqrt(projectVariance);
+            
+            results = {
+                activities: activityData,
+                activityMap,
+                projectDuration,
+                criticalPath,
+                projectVariance,
+                projectStdDev
+            };
+            
+            displayNetwork();
+            displayAnalysis();
+            displayProbability();
+            displayGantt();
+            displayRecommendation();
+            
+            // Switch to network tab
+            showTab('network');
+            document.querySelectorAll('.tab')[1].classList.add('active');
+            document.querySelectorAll('.tab')[0].classList.remove('active');
+        }
+        
+        function displayNetwork() {
+            const container = document.getElementById('network-container');
+            
+            // Node positions - AON layout
+            const positions = {
+                'A': { x: 80, y: 250 },
+                'B': { x: 200, y: 250 },
+                'C': { x: 340, y: 120 },
+                'D': { x: 340, y: 220 },
+                'E': { x: 340, y: 320 },
+                'F': { x: 340, y: 420 },
+                'G': { x: 500, y: 170 },
+                'H': { x: 500, y: 290 },
+                'I': { x: 660, y: 190 },
+                'J': { x: 660, y: 350 },
+                'K': { x: 200, y: 420 },
+                'L': { x: 820, y: 190 },
+                'M': { x: 980, y: 270 },
+                'N': { x: 1120, y: 320 }
+            };
+            
+            const nodeWidth = 90;
+            const nodeHeight = 60;
+            
+            // Generate arrows
+            let arrows = '';
+            results.activities.forEach(act => {
+                act.predecessors.forEach(predId => {
+                    const from = positions[predId];
+                    const to = positions[act.id];
+                    const isCriticalPath = results.activityMap[predId].isCritical && act.isCritical;
+                    
+                    const startX = from.x + nodeWidth;
+                    const startY = from.y + nodeHeight/2;
+                    const endX = to.x;
+                    const endY = to.y + nodeHeight/2;
+                    
+                    const midX = (startX + endX) / 2;
+                    
+                    arrows += `
+                        <path class="arrow ${isCriticalPath ? 'critical' : 'normal'}" 
+                              d="M${startX},${startY} C${midX},${startY} ${midX},${endY} ${endX},${endY}"
+                              marker-end="url(#arrowhead${isCriticalPath ? '-critical' : ''})"/>
+                    `;
+                });
+            });
+            
+            // Generate nodes (AON style boxes)
+            let nodes = '';
+            results.activities.forEach(act => {
+                const pos = positions[act.id];
+                const isCritical = act.isCritical;
+                
+                nodes += `
+                    <g class="activity-node" transform="translate(${pos.x}, ${pos.y})">
+                        <!-- Main box -->
+                        <rect class="node-box ${isCritical ? 'critical' : 'normal'}" 
+                              width="${nodeWidth}" height="${nodeHeight}"/>
+                        
+                        <!-- Horizontal divider -->
+                        <line class="node-divider ${isCritical ? 'critical' : ''}" 
+                              x1="0" y1="20" x2="${nodeWidth}" y2="20"/>
+                        
+                        <!-- Vertical dividers for bottom section -->
+                        <line class="node-divider ${isCritical ? 'critical' : ''}" 
+                              x1="${nodeWidth/3}" y1="20" x2="${nodeWidth/3}" y2="${nodeHeight}"/>
+                        <line class="node-divider ${isCritical ? 'critical' : ''}" 
+                              x1="${2*nodeWidth/3}" y1="20" x2="${2*nodeWidth/3}" y2="${nodeHeight}"/>
+                        
+                        <!-- Activity ID -->
+                        <text class="node-text node-id ${isCritical ? 'critical' : ''}" 
+                              x="${nodeWidth/2}" y="14" text-anchor="middle">${act.id}</text>
+                        
+                        <!-- ES -->
+                        <text class="node-text node-time-label" x="${nodeWidth/6}" y="32" text-anchor="middle">ES</text>
+                        <text class="node-text node-time-value" x="${nodeWidth/6}" y="50" text-anchor="middle">${act.ES.toFixed(1)}</text>
+                        
+                        <!-- te -->
+                        <text class="node-text node-time-label" x="${nodeWidth/2}" y="32" text-anchor="middle">t</text>
+                        <text class="node-text node-time-value" x="${nodeWidth/2}" y="50" text-anchor="middle" 
+                              style="fill: ${isCritical ? 'var(--critical)' : 'var(--primary)'};">${act.te.toFixed(2)}</text>
+                        
+                        <!-- EF -->
+                        <text class="node-text node-time-label" x="${5*nodeWidth/6}" y="32" text-anchor="middle">EF</text>
+                        <text class="node-text node-time-value" x="${5*nodeWidth/6}" y="50" text-anchor="middle">${act.EF.toFixed(1)}</text>
+                    </g>
+                `;
+            });
+            
+            container.innerHTML = `
+                <div class="card" style="text-align: center; background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(249, 115, 22, 0.1)); border: 2px solid var(--critical);">
+                    <div style="font-size: 0.875rem; color: var(--critical); text-transform: uppercase; letter-spacing: 2px;">
+                        🔴 Critical Path Identified
+                    </div>
+                    <div style="font-size: 2rem; font-weight: 800; color: var(--text-primary); margin: 0.5rem 0; display: flex; justify-content: center; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                        ${results.criticalPath.map((id, i) => `
+                            <span style="background: var(--critical); color: white; padding: 8px 16px; border-radius: 8px;">${id}</span>
+                            ${i < results.criticalPath.length - 1 ? '<span style="color: var(--critical);">→</span>' : ''}
+                        `).join('')}
+                    </div>
+                    <div style="color: var(--text-secondary);">
+                        Project Duration: <b style="color: var(--critical);">${results.projectDuration.toFixed(2)} weeks</b> | 
+                        σ = ${results.projectStdDev.toFixed(2)} weeks
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-title-icon">🔗</div>
+                            PERT Network Diagram (Activity-on-Node)
+                        </div>
+                        <span class="badge badge-critical">Critical Path Highlighted</span>
+                    </div>
+                    
+                    <div class="network-diagram">
+                        <svg class="network-svg" viewBox="0 0 1220 500">
+                            <defs>
+                                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0, 10 3.5, 0 7" fill="#71717a"/>
+                                </marker>
+                                <marker id="arrowhead-critical" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444"/>
+                                </marker>
+                            </defs>
+                            
+                            <!-- Start Node -->
+                            <circle cx="40" cy="280" r="20" fill="var(--success)" stroke="var(--success)" stroke-width="2"/>
+                            <text x="40" y="285" text-anchor="middle" fill="white" font-size="12" font-weight="700">Start</text>
+                            <line x1="60" y1="280" x2="80" y2="280" stroke="var(--text-secondary)" stroke-width="2" marker-end="url(#arrowhead)"/>
+                            
+                            <!-- Arrows -->
+                            ${arrows}
+                            
+                            <!-- Nodes -->
+                            ${nodes}
+                            
+                            <!-- End Node -->
+                            <circle cx="1200" cy="350" r="20" fill="var(--danger)" stroke="var(--danger)" stroke-width="2"/>
+                            <text x="1200" y="355" text-anchor="middle" fill="white" font-size="12" font-weight="700">End</text>
+                        </svg>
+                    </div>
+                    
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-box" style="border-color: var(--critical); background: rgba(239, 68, 68, 0.15);"></div>
+                            <span>Critical Activity (Slack = 0)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-box" style="border-color: var(--secondary); background: rgba(6, 182, 212, 0.1);"></div>
+                            <span>Non-Critical Activity</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-line" style="background: var(--critical);"></div>
+                            <span>Critical Path</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-line" style="background: var(--text-secondary); background-image: repeating-linear-gradient(90deg, transparent, transparent 3px, var(--bg-dark) 3px, var(--bg-dark) 6px);"></div>
+                            <span>Non-Critical Path</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-dark); border-radius: 10px;">
+                        <h4 style="color: var(--primary); margin-bottom: 0.5rem;">📐 Node Format (AON Convention)</h4>
+                        <div style="display: flex; justify-content: center; margin: 1rem 0;">
+                            <svg width="150" height="100">
+                                <rect x="5" y="5" width="140" height="90" fill="var(--bg-card)" stroke="var(--primary)" stroke-width="2" rx="4"/>
+                                <line x1="5" y1="35" x2="145" y2="35" stroke="var(--border)" stroke-width="1"/>
+                                <line x1="52" y1="35" x2="52" y2="95" stroke="var(--border)" stroke-width="1"/>
+                                <line x1="98" y1="35" x2="98" y2="95" stroke="var(--border)" stroke-width="1"/>
+                                <text x="75" y="25" text-anchor="middle" fill="var(--primary)" font-size="14" font-weight="700">Activity ID</text>
+                                <text x="28" y="52" text-anchor="middle" fill="var(--text-secondary)" font-size="9">ES</text>
+                                <text x="28" y="75" text-anchor="middle" fill="var(--text-primary)" font-size="12">value</text>
+                                <text x="75" y="52" text-anchor="middle" fill="var(--text-secondary)" font-size="9">t<tspan baseline-shift="sub" font-size="7">e</tspan></text>
+                                <text x="75" y="75" text-anchor="middle" fill="var(--primary)" font-size="12" font-weight="600">value</text>
+                                <text x="122" y="52" text-anchor="middle" fill="var(--text-secondary)" font-size="9">EF</text>
+                                <text x="122" y="75" text-anchor="middle" fill="var(--text-primary)" font-size="12">value</text>
+                            </svg>
+                        </div>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); text-align: center;">
+                            ES = Earliest Start | t<sub>e</sub> = Expected Time | EF = Earliest Finish
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function displayAnalysis() {
+            const container = document.getElementById('analysis-container');
+            
+            container.innerHTML = `
+                <div class="grid grid-5" style="margin-bottom: 1.5rem;">
+                    <div class="stat-card critical">
+                        <div class="stat-label">Project Duration</div>
+                        <div class="stat-value critical">${results.projectDuration.toFixed(2)}</div>
+                        <div class="stat-sub">weeks</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Critical Activities</div>
+                        <div class="stat-value">${results.criticalPath.length}</div>
+                        <div class="stat-sub">of ${results.activities.length} total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Project Variance</div>
+                        <div class="stat-value">${results.projectVariance.toFixed(2)}</div>
+                        <div class="stat-sub">weeks²</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Std Deviation</div>
+                        <div class="stat-value">${results.projectStdDev.toFixed(2)}</div>
+                        <div class="stat-sub">weeks</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Max Slack</div>
+                        <div class="stat-value">${Math.max(...results.activities.map(a => a.slack)).toFixed(2)}</div>
+                        <div class="stat-sub">weeks</div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-title-icon">📊</div>
+                            Complete CPM Analysis Table
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Activity</th>
+                                    <th>Description</th>
+                                    <th>a</th>
+                                    <th>m</th>
+                                    <th>b</th>
+                                    <th>t<sub>e</sub></th>
+                                    <th>σ²</th>
+                                    <th>ES</th>
+                                    <th>EF</th>
+                                    <th>LS</th>
+                                    <th>LF</th>
+                                    <th>Slack</th>
+                                    <th>Critical?</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${results.activities.map(a => `
+                                    <tr class="${a.isCritical ? 'critical-row' : ''}">
+                                        <td><b>${a.id}</b></td>
+                                        <td style="text-align: left; font-size: 0.7rem;">${a.name}</td>
+                                        <td>${a.a}</td>
+                                        <td>${a.m}</td>
+                                        <td>${a.b}</td>
+                                        <td><b>${a.te.toFixed(2)}</b></td>
+                                        <td>${a.variance.toFixed(3)}</td>
+                                        <td>${a.ES.toFixed(2)}</td>
+                                        <td>${a.EF.toFixed(2)}</td>
+                                        <td>${a.LS.toFixed(2)}</td>
+                                        <td>${a.LF.toFixed(2)}</td>
+                                        <td><b>${a.slack.toFixed(2)}</b></td>
+                                        <td>${a.isCritical ? '<span class="badge badge-critical">YES</span>' : '<span class="badge badge-success">No</span>'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="grid grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <div class="card-title-icon">🔴</div>
+                                Critical Path Activities
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            ${results.activities.filter(a => a.isCritical).map(a => `
+                                <div class="critical-highlight" style="padding: 0.75rem; background: var(--bg-dark); border-radius: 8px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <div>
+                                            <span style="font-weight: 700; color: var(--critical);">${a.id}:</span>
+                                            <span style="font-size: 0.875rem;">${a.name}</span>
+                                        </div>
+                                        <span style="font-weight: 700;">${a.te.toFixed(2)}w</span>
+                                    </div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                                        σ² = ${a.variance.toFixed(3)} | ES: ${a.ES.toFixed(1)} → EF: ${a.EF.toFixed(1)}
+                                    </div>
+                                </div>
+                            `).join('')}
+                            <div style="padding: 1rem; background: rgba(239, 68, 68, 0.15); border-radius: 8px; text-align: center; margin-top: 0.5rem;">
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">Critical Path Variance</div>
+                                <div style="font-size: 1.25rem; font-weight: 700; color: var(--critical);">σ² = ${results.projectVariance.toFixed(2)} weeks²</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <div class="card-title-icon">🟢</div>
+                                Activities with Slack
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            ${results.activities.filter(a => !a.isCritical).sort((x, y) => y.slack - x.slack).map(a => `
+                                <div style="padding: 0.75rem; background: var(--bg-dark); border-radius: 8px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <div>
+                                            <span style="font-weight: 700; color: var(--secondary);">${a.id}:</span>
+                                            <span style="font-size: 0.875rem;">${a.name}</span>
+                                        </div>
+                                        <span class="badge badge-success">${a.slack.toFixed(2)}w slack</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function normalCDF(z) {
+            const a1 =  0.254829592, a2 = -0.284496736, a3 =  1.421413741;
+            const a4 = -1.453152027, a5 =  1.061405429, p  =  0.3275911;
+            const sign = z < 0 ? -1 : 1;
+            z = Math.abs(z) / Math.sqrt(2);
+            const t = 1.0 / (1.0 + p * z);
+            const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-z * z);
+            return 0.5 * (1.0 + sign * y);
+        }
+        
+        function displayProbability() {
+            const container = document.getElementById('probability-container');
+            
+            const targets = [20, 22, 24, 25, 26];
+            const probabilities = targets.map(t => {
+                const z = (t - results.projectDuration) / results.projectStdDev;
+                const prob = normalCDF(z);
+                return { weeks: t, z: z, probability: prob };
+            });
+            
+            container.innerHTML = `
+                <div class="card" style="text-align: center; background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(6, 182, 212, 0.1));">
+                    <div style="font-size: 0.875rem; color: var(--accent); text-transform: uppercase; letter-spacing: 2px;">
+                        Expected Project Duration
+                    </div>
+                    <div style="font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0.5rem 0;">
+                        ${results.projectDuration.toFixed(2)} weeks
+                    </div>
+                    <div style="font-family: monospace; color: var(--text-secondary);">
+                        σ = ${results.projectStdDev.toFixed(2)} weeks | Z = (T - ${results.projectDuration.toFixed(2)}) / ${results.projectStdDev.toFixed(2)}
+                    </div>
+                </div>
+                
+                <div class="grid grid-5" style="margin: 1.5rem 0;">
+                    ${probabilities.map(p => {
+                        let statusColor, statusText;
+                        if (p.probability < 0.25) {
+                            statusColor = 'var(--danger)';
+                            statusText = 'HIGH RISK';
+                        } else if (p.probability < 0.5) {
+                            statusColor = 'var(--warning)';
+                            statusText = 'MODERATE';
+                        } else if (p.probability < 0.8) {
+                            statusColor = 'var(--primary)';
+                            statusText = 'ACCEPTABLE';
+                        } else if (p.probability < 0.95) {
+                            statusColor = 'var(--success)';
+                            statusText = 'GOOD';
+                        } else {
+                            statusColor = 'var(--secondary)';
+                            statusText = 'VERY SAFE';
+                        }
+                        
+                        return `
+                            <div class="prob-card">
+                                <div class="prob-weeks">${p.weeks} weeks</div>
+                                <div class="prob-value" style="color: ${statusColor};">${(p.probability * 100).toFixed(1)}%</div>
+                                <div class="prob-status" style="color: ${statusColor};">${statusText}</div>
+                                <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.5rem;">Z = ${p.z.toFixed(2)}</div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                
+                <div class="grid grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <div class="card-title-icon">📐</div>
+                                Probability Calculation
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Target (T)</th>
+                                        <th>Z-Score</th>
+                                        <th>P(T ≤ Target)</th>
+                                        <th>Risk Level</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${probabilities.map(p => `
+                                        <tr>
+                                            <td><b>${p.weeks} weeks</b></td>
+                                            <td>${p.z.toFixed(3)}</td>
+                                            <td style="font-weight: 700;">${(p.probability * 100).toFixed(2)}%</td>
+                                            <td>${p.probability < 0.5 ? '<span class="badge badge-danger">HIGH</span>' : p.probability < 0.8 ? '<span class="badge badge-warning">MEDIUM</span>' : '<span class="badge badge-success">LOW</span>'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <div class="card-title-icon">⚠️</div>
+                                Risk Assessment
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div style="padding: 1rem; background: rgba(239, 68, 68, 0.1); border-radius: 8px; border-left: 4px solid var(--danger);">
+                                <h4 style="color: var(--danger); margin-bottom: 0.25rem;">🔴 20-Week Target</h4>
+                                <p style="font-size: 0.8rem; color: var(--text-secondary);">
+                                    Only <b>12%</b> probability. Unrealistic without aggressive crashing.
+                                </p>
+                            </div>
+                            <div style="padding: 1rem; background: rgba(234, 179, 8, 0.1); border-radius: 8px; border-left: 4px solid var(--warning);">
+                                <h4 style="color: var(--warning); margin-bottom: 0.25rem;">🟡 22-Week Target</h4>
+                                <p style="font-size: 0.8rem; color: var(--text-secondary);">
+                                    <b>52%</b> probability - coin flip. Use as internal target only.
+                                </p>
+                            </div>
+                            <div style="padding: 1rem; background: rgba(34, 197, 94, 0.1); border-radius: 8px; border-left: 4px solid var(--success);">
+                                <h4 style="color: var(--success); margin-bottom: 0.25rem;">✅ 24-Week Target (Recommended)</h4>
+                                <p style="font-size: 0.8rem; color: var(--text-secondary);">
+                                    <b>90%</b> probability - suitable for external commitments.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function displayGantt() {
+            const container = document.getElementById('gantt-container');
+            
+            const maxDuration = Math.ceil(results.projectDuration) + 2;
+            
+            let ganttRows = results.activities.map(a => {
+                const startPct = (a.ES / maxDuration) * 100;
+                const widthPct = (a.te / maxDuration) * 100;
+                
+                return `
+                    <div class="gantt-row">
+                        <div class="gantt-label" style="color: ${a.isCritical ? 'var(--critical)' : 'var(--text-primary)'};">
+                            ${a.id}: ${a.name.substring(0, 12)}${a.name.length > 12 ? '...' : ''}
+                        </div>
+                        <div class="gantt-track">
+                            <div class="gantt-bar ${a.isCritical ? 'critical' : 'normal'}" 
+                                 style="left: ${startPct}%; width: ${widthPct}%;">
+                                ${a.te.toFixed(1)}w
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-title-icon">📅</div>
+                            Project Gantt Chart
+                        </div>
+                        <div class="legend" style="margin: 0; gap: 1rem;">
+                            <div class="legend-item">
+                                <div style="width: 20px; height: 12px; background: linear-gradient(90deg, var(--critical), #dc2626); border-radius: 2px;"></div>
+                                <span style="font-size: 0.75rem;">Critical</span>
+                            </div>
+                            <div class="legend-item">
+                                <div style="width: 20px; height: 12px; background: linear-gradient(90deg, var(--secondary), #0891b2); border-radius: 2px;"></div>
+                                <span style="font-size: 0.75rem;">Non-Critical</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="gantt-container">
+                        ${ganttRows}
+                        <div class="gantt-markers">
+                            ${Array.from({length: maxDuration + 1}, (_, i) => `<div class="gantt-marker">${i}</div>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function displayRecommendation() {
+            const container = document.getElementById('recommendation-container');
+            
+            container.innerHTML = `
+                <div class="card" style="text-align: center; background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(6, 182, 212, 0.1)); border: 2px solid var(--success);">
+                    <div style="font-size: 0.875rem; color: var(--success); text-transform: uppercase; letter-spacing: 2px;">
+                        🎯 Recommended Timeline
+                    </div>
+                    <div style="font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--success), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0.5rem 0;">
+                        24 Weeks
+                    </div>
+                    <div style="color: var(--text-secondary);">
+                        External commitment with <b>90%</b> confidence | Internal target: 22 weeks
+                    </div>
+                </div>
+                
+                <div class="grid grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <div class="card-title-icon">🛡️</div>
+                                Risk Mitigation Strategies
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div style="padding: 1rem; background: rgba(239, 68, 68, 0.1); border-radius: 8px; border-left: 4px solid var(--critical);">
+                                <h4 style="color: var(--critical); margin-bottom: 0.5rem;">1. Crash Activity C (Payment Engine)</h4>
+                                <p style="font-size: 0.85rem; color: var(--text-secondary);">
+                                    Add 2 senior developers. Potential reduction: <b>1.5 weeks</b>.<br>
+                                    Cost: 180,000 EGP
+                                </p>
+                            </div>
+                            <div style="padding: 1rem; background: rgba(249, 115, 22, 0.1); border-radius: 8px; border-left: 4px solid var(--primary);">
+                                <h4 style="color: var(--primary); margin-bottom: 0.5rem;">2. Fast-Track Regulatory (Activity L)</h4>
+                                <p style="font-size: 0.85rem; color: var(--text-secondary);">
+                                    Engage CBE consultant. Potential reduction: <b>0.5-1 week</b>.<br>
+                                    Cost: 75,000 EGP
+                                </p>
+                            </div>
+                            <div style="padding: 1rem; background: rgba(6, 182, 212, 0.1); border-radius: 8px; border-left: 4px solid var(--secondary);">
+                                <h4 style="color: var(--secondary); margin-bottom: 0.5rem;">3. Delay Marketing (Activity K)</h4>
+                                <p style="font-size: 0.85rem; color: var(--text-secondary);">
+                                    Has ${results.activities.find(a => a.id === 'K').slack.toFixed(1)} weeks slack. Start at Week 9 to free resources.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <div class="card-title-icon">👥</div>
+                                Resource Priorities
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Priority</th>
+                                        <th>Activity</th>
+                                        <th>Resources</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="critical-row">
+                                        <td>1</td>
+                                        <td><b>C</b> Payment Engine</td>
+                                        <td>3 Senior Devs</td>
+                                    </tr>
+                                    <tr class="critical-row">
+                                        <td>2</td>
+                                        <td><b>G</b> Banking Integration</td>
+                                        <td>2 Devs + Bank RM</td>
+                                    </tr>
+                                    <tr class="critical-row">
+                                        <td>3</td>
+                                        <td><b>B</b> Architecture</td>
+                                        <td>Lead Architect</td>
+                                    </tr>
+                                    <tr class="critical-row">
+                                        <td>4</td>
+                                        <td><b>L</b> Regulatory</td>
+                                        <td>Compliance + Legal</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(6, 182, 212, 0.1));">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-title-icon">📝</div>
+                            Executive Summary
+                        </div>
+                        <button class="btn btn-secondary" onclick="copyExecutiveSummary()">📋 Copy</button>
+                    </div>
+                    <div id="executive-summary" style="padding: 1.5rem; background: var(--bg-dark); border-radius: 10px; line-height: 1.8;">
+                        <p><b>TO:</b> SwiftPay Executive Team</p>
+                        <p><b>FROM:</b> Project Management Office</p>
+                        <p><b>RE:</b> B2B Platform Launch Schedule Analysis</p>
+                        <hr style="border-color: var(--border); margin: 1rem 0;">
+                        
+                        <p>PERT/CPM analysis of the SwiftPay B2B platform launch identifies an expected project duration of 
+                        <b>${results.projectDuration.toFixed(2)} weeks</b> with σ = ${results.projectStdDev.toFixed(2)} weeks.</p>
+                        
+                        <p><b>Critical Path:</b> ${results.criticalPath.join(' → ')}</p>
+                        
+                        <p><b>Key Findings:</b></p>
+                        <ul style="margin-left: 1.5rem; color: var(--text-secondary);">
+                            <li>20-week target has only 12% probability - not recommended</li>
+                            <li>24-week timeline provides 90% confidence for external commitments</li>
+                            <li>Activity C (Payment Engine) is longest and most variable critical activity</li>
+                            <li>Activity K (Marketing) has ${results.activities.find(a => a.id === 'K').slack.toFixed(1)} weeks slack - can be deferred</li>
+                        </ul>
+                        
+                        <p><b>Recommendation:</b> Commit to <b>24-week</b> external timeline, manage to 22-week internal target. 
+                        Focus best engineering talent on Activity C. Expected launch: Q2 2026.</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function exportResults() {
+            if (!results) {
+                alert('Please analyze the project first!');
+                return;
+            }
+            
+            let csv = 'SwiftPay B2B Platform - PERT/CPM Analysis\\n\\n';
+            csv += 'Activity,Description,a,m,b,te,Variance,ES,EF,LS,LF,Slack,Critical\\n';
+            
+            results.activities.forEach(a => {
+                csv += `${a.id},"${a.name}",${a.a},${a.m},${a.b},${a.te.toFixed(2)},${a.variance.toFixed(3)},`;
+                csv += `${a.ES.toFixed(2)},${a.EF.toFixed(2)},${a.LS.toFixed(2)},${a.LF.toFixed(2)},${a.slack.toFixed(2)},${a.isCritical}\\n`;
+            });
+            
+            csv += `\\nProject Duration,${results.projectDuration.toFixed(2)}\\n`;
+            csv += `Project Variance,${results.projectVariance.toFixed(2)}\\n`;
+            csv += `Project Std Dev,${results.projectStdDev.toFixed(2)}\\n`;
+            csv += `Critical Path,"${results.criticalPath.join(' → ')}"\\n`;
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'swiftpay_pert_analysis.csv';
+            a.click();
+        }
+        
+        function copyExecutiveSummary() {
+            const summary = document.getElementById('executive-summary');
+            navigator.clipboard.writeText(summary.innerText).then(() => {
+                alert('✅ Executive summary copied to clipboard!');
+            });
+        }
+        
+        initActivityTable();
+    </script>
+</body>
+</html>
